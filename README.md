@@ -1,20 +1,24 @@
-FHIRagent
-FHIRagent is a comprehensive FHIR integration solution designed to facilitate seamless data exchange between healthcare systems. It consists of two primary components:
+# FHIRagent
 
-Desktop Agent: A WPF desktop application that integrates in real time with Athenahealth's EHR via SMART on FHIR. It harvests and synchronizes patient data from the EHR and pushes aggregated context to a secondary FHIR server.
-Admin Panel: A web-based (Blazor WebAssembly + Firebase) administration interface for monitoring, configuration, logging, and analytics.
-System Architecture
-plaintext
-Copy
+**FHIRagent** is a comprehensive FHIR integration solution designed to facilitate seamless data exchange between healthcare systems. It consists of two primary components:
+
+1. **Desktop Agent:** A WPF desktop application that integrates in real time with Athenahealth's EHR via SMART on FHIR. It harvests and synchronizes patient data from the EHR and pushes aggregated context to a secondary FHIR server.
+2. **Admin Panel:** A web-based (Blazor WebAssembly + Firebase) administration interface for monitoring, configuration, logging, and analytics.
+
+---
+
+## System Architecture
+
+```plaintext
             +---------------------+         +--------------------------+
             |     Agent.UI        |<------->|      Agent.Services      |
-            | (WPF Desktop App)   |  UI Overlay &  PatientContextListener  |
+            | (WPF Desktop App)   |   UI Overlay & PatientContextListener  |
             +----------+----------+         +-------------+------------+
                        |                                |
                        |                                v
              +---------+---------+         +----------------------+
              |   Primary EHR     |         | Secondary FHIR Server|
-             |   (Athenahealth)  |         | (e.g. HAPI FHIR Test)|
+             |  (Athenahealth)   |         | (e.g. HAPI FHIR Test)|
              +-------------------+         +----------------------+
                                    ^
                                    |
@@ -22,17 +26,19 @@ Copy
                     |      Admin Panel          |
                     | (Blazor WebAssembly + Firebase) |
                     +-----------------------------+
+
+
 Components
 Desktop Agent
 Monitors EHR Activity: Listens for patient context changes when a physician accesses a patient record.
 Data Harvesting: Uses FHIR R4 queries to retrieve patient data (demographics, conditions, medications, observations, etc.) from the EHR.
 Data Synchronization: Pushes aggregated patient data to a secondary FHIR server.
 Real-Time Overlay: Launches an embedded web overlay displaying patient context on top of the EHR.
-EHR Write Operations: Writes updates or additional notes back to the EHR via FHIR.
+EHR Write Operations: Writes updates back to the EHR via FHIR.
 Admin Panel
 Monitoring: Real-time tracking of agent status and patient data flow.
 Configuration Management: Adjust settings for endpoints, SMART on FHIR credentials, and polling intervals.
-Logging & Analytics: Displays system logs and deployment status.
+Logging & Analytics: Displays system logs, deployment status, and analytics.
 Web Access: Accessible at https://fhiragent.web.app.
 Project Structure
 Agent.Core/
@@ -49,7 +55,7 @@ MainWindow.xaml – Main UI with an embedded WebBrowser control for the patient 
 Agent.Services/
 Contains background services.
 
-PatientContextListener.cs – Monitors for patient context changes (via FHIR Subscriptions or polling).
+PatientContextListener.cs – Monitors patient context changes (via FHIR Subscriptions or polling).
 AdminPanel/
 The Blazor WebAssembly admin interface.
 
@@ -63,7 +69,7 @@ appsettings.json – Stores EHR endpoints, SMART on FHIR credentials, secondary 
 .cursorrules – Contains context rules and links to key documentation (e.g., Firely .NET SDK, SMART on FHIR spec, Athenahealth developer docs).
 Getting Started
 Prerequisites
-.NET 8.0 SDK (or later, as required)
+.NET 8.0 SDK (or later as required)
 Visual Studio 2022 or VS Code
 Node.js and npm (for Firebase tools)
 Firebase CLI
