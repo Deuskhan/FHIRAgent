@@ -1,0 +1,32 @@
+# Cursor Rules and Reference Links
+
+## Documentation References
+- Firely .NET SDK Documentation: https://docs.fire.ly/
+- SMART on FHIR Specification: https://smarthealthit.org/
+- HL7 FHIR R4 Specification: https://hl7.org/fhir/R4/index.html
+- Athenahealth Developer Documentation: https://developer.athenahealth.com/
+- HAPI FHIR Public Test Server: http://hapi.fhir.org/baseR4
+
+## Key Context Instructions
+- Follow SMART on FHIR authentication flows as specified.
+- Utilize dependency injection (via Microsoft.Extensions.DependencyInjection) for better testability and modular design.
+- Ensure all FHIR API calls are asynchronous and secure.
+- Integrate logging (using Serilog) for monitoring, and add proper error handling as needed.
+
+## Project Structure
+- AdminPanel: Web-based admin interface for monitoring agents
+- AgentClient: Desktop/service application that runs on physicians' computers
+- Common: Shared libraries for FHIR integration and models
+
+## Development Guidelines
+- Use async/await for all I/O operations
+- Follow SOLID principles
+- Implement proper error handling and logging
+- Ensure HIPAA compliance in all data handling
+- Use Entity Framework Core for data access
+- Follow SMART on FHIR security protocols
+
+## Testing
+- Use HAPI FHIR test server for development
+- Implement unit tests for all business logic
+- Include integration tests for FHIR operations 

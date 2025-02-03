@@ -1,0 +1,12 @@
+# Cursor Rules and Reference Links
+
+- Firely .NET SDK Documentation: https://docs.fire.ly/
+- SMART on FHIR Specification: https://smarthealthit.org/
+- Athenahealth Developer Documentation: https://developer.athenahealth.com/
+- HAPI FHIR Public Test Server: https://hapi.fhir.org/baseR4
+
+# Key Context Instructions
+- Follow SMART on FHIR authentication flows as specified.
+- Utilize dependency injection (via Microsoft.Extensions.DependencyInjection) for better testability and modular design.
+- Ensure all FHIR API calls are asynchronous and secure.
+- Integrate logging (e.g., using Serilog) for monitoring, and add proper error handling as needed. 

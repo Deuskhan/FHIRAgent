@@ -1,0 +1,261 @@
+@page "/agent/{AgentId:int}"
+@attribute [Authorize]
+@inject FirebaseService Firebase
+@inject NavigationManager Navigation
+@inject ILogger<AgentDetails> _logger
+@using Microsoft.Extensions.Logging
+@using System.Collections.Generic
+@implements IDisposable
+
+<div class="row mb-4">
+    <div class="col">
+        <button class="btn btn-secondary" @onclick="NavigateBack">
+            <span class="oi oi-arrow-left"></span> Back to Dashboard
+        </button>
+    </div>
+</div>
+
+@if (_agent == null)
+{
+    <div class="alert alert-info">Loading agent details...</div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>@_agent.MachineName</h3>
+                    <span class="badge @(_isActive ? "bg-success" : "bg-warning")">
+                        @(_isActive ? "Active" : "Inactive")
+                    </span>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">@_agent.Status</dd>
+
+                        <dt class="col-sm-4">Last Sync</dt>
+                        <dd class="col-sm-8">@_agent.LastSyncTime.ToLocalTime()</dd>
+
+                        <dt class="col-sm-4">Patient Matches</dt>
+                        <dd class="col-sm-8">@_agent.PatientMatchCount</dd>
+
+                        <dt class="col-sm-4">Extracted Data</dt>
+                        <dd class="col-sm-8">@_agent.ExtractedDataCount</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4>Configuration</h4>
+                    <button class="btn btn-primary btn-sm" @onclick="() => _showConfigEditor = true">
+                        Edit Configuration
+                    </button>
+                </div>
+                <div class="card-body">
+                    @if (_config == null)
+                    {
+                        <div class="alert alert-warning">No configuration found</div>
+                    }
+                    else
+                    {
+                        <dl class="row">
+                            <dt class="col-sm-4">FHIR Server</dt>
+                            <dd class="col-sm-8">@_config.FhirServerUrl</dd>
+
+                            <dt class="col-sm-4">Polling Interval</dt>
+                            <dd class="col-sm-8">@_config.PollingIntervalMinutes minutes</dd>
+
+                            <dt class="col-sm-4">Patient Matching</dt>
+                            <dd class="col-sm-8">@(_config.EnablePatientMatching ? "Enabled" : "Disabled")</dd>
+
+                            <dt class="col-sm-4">Data Extraction</dt>
+                            <dd class="col-sm-8">@(_config.EnableDataExtraction ? "Enabled" : "Disabled")</dd>
+
+                            <dt class="col-sm-4">Monitored Resources</dt>
+                            <dd class="col-sm-8">@string.Join(", ", _config.MonitoredResourceTypes)</dd>
+                        </dl>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Recent Logs</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Severity</th>
+                                    <th>Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var log in _agentLogs)
+                                {
+                                    <tr class="@GetSeverityClass(log.Severity)">
+                                        <td>@log.Timestamp.ToLocalTime().ToString("HH:mm:ss")</td>
+                                        <td>@log.Severity</td>
+                                        <td>@log.Message</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showConfigEditor)
+{
+    <div class="modal fade show" style="display: block;">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Configuration</h5>
+                    <button type="button" class="btn-close" @onclick="() => _showConfigEditor = false"></button>
+                </div>
+                <EditForm Model="@_editConfig" OnValidSubmit="SaveConfiguration">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">FHIR Server URL</label>
+                            <InputText class="form-control" @bind-value="@_editConfig.FhirServerUrl" />
+                            <ValidationMessage For="@(() => _editConfig.FhirServerUrl)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Polling Interval (minutes)</label>
+                            <InputNumber class="form-control" @bind-value="@_editConfig.PollingIntervalMinutes" />
+                            <ValidationMessage For="@(() => _editConfig.PollingIntervalMinutes)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-check">
+                                <InputCheckbox @bind-value="@_editConfig.EnablePatientMatching" />
+                                Enable Patient Matching
+                            </label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-check">
+                                <InputCheckbox @bind-value="@_editConfig.EnableDataExtraction" />
+                                Enable Data Extraction
+                            </label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Client ID</label>
+                            <InputText class="form-control" @bind-value="@_editConfig.ClientId" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Client Secret</label>
+                            <InputText type="password" class="form-control" @bind-value="@_editConfig.ClientSecret" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Token URL</label>
+                            <InputText class="form-control" @bind-value="@_editConfig.TokenUrl" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Scope</label>
+                            <InputText class="form-control" @bind-value="@_editConfig.Scope" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="() => _showConfigEditor = false">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public int AgentId { get; set; }
+
+    private Agent? _agent;
+    private List<LogEntry> _agentLogs = new();
+    private bool _isActive => _agent != null && 
+        (DateTime.UtcNow - _agent.LastSyncTime).TotalMinutes < 5;
+    private AgentConfiguration? _config;
+    private AgentConfiguration _editConfig = new();
+    private bool _showConfigEditor;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Firebase.OnAgentsChanged += HandleAgentsChanged;
+        Firebase.OnLogsChanged += HandleLogsChanged;
+        Firebase.OnConfigurationChanged += HandleConfigurationChanged;
+        await Firebase.StartRealtimeUpdatesAsync();
+        await Firebase.StartConfigurationListenerAsync(AgentId.ToString());
+    }
+
+    private void HandleAgentsChanged(List<Agent> agents)
+    {
+        _agent = agents.FirstOrDefault(a => a.AgentId == AgentId);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleLogsChanged(List<LogEntry> logs)
+    {
+        _agentLogs = logs.Where(l => l.AgentId == AgentId.ToString())
+                        .OrderByDescending(l => l.Timestamp)
+                        .Take(100)
+                        .ToList();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleConfigurationChanged(AgentConfiguration? config)
+    {
+        _config = config;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveConfiguration(EditContext context)
+    {
+        try
+        {
+            _editConfig.AgentId = AgentId.ToString();
+            await Firebase.UpdateAgentConfigurationAsync(_editConfig);
+            _showConfigEditor = false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating configuration");
+            // TODO: Show error message to user
+        }
+    }
+
+    private string GetSeverityClass(string severity) => severity.ToLower() switch
+    {
+        "error" => "table-danger",
+        "warning" => "table-warning",
+        "information" => "table-info",
+        _ => ""
+    };
+
+    private void NavigateBack() => Navigation.NavigateTo("/");
+
+    public void Dispose()
+    {
+        Firebase.OnAgentsChanged -= HandleAgentsChanged;
+        Firebase.OnLogsChanged -= HandleLogsChanged;
+        Firebase.OnConfigurationChanged -= HandleConfigurationChanged;
+        Firebase.StopRealtimeUpdates();
+    }
+} 

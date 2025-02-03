@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FHIR Agent Admin</title>
+    <base href="/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link href="AdminPanel.styles.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="app">
+        <div class="loading-progress">
+            <h1>Loading...</h1>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+    <!-- Firebase Auth -->
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth.js"></script>
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_OCpv70ADV05dkkp2dgsrj6-sEnDSnq0",
+            authDomain: "fhiragent.firebaseapp.com",
+            projectId: "fhiragent",
+            storageBucket: "fhiragent.firebasestorage.app",
+            messagingSenderId: "233877260303",
+            appId: "1:233877260303:web:70624ad3d8728bcb273b7a",
+            measurementId: "G-VL3WFYZTMR"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+</html> 

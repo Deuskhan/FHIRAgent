@@ -1,0 +1,98 @@
+@page "/"
+@attribute [Authorize]
+@inject FirebaseService Firebase
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<h1>Agent Dashboard</h1>
+
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Statistics</h5>
+                <p>Total Agents: @_agents.Count</p>
+                <p>Total Patient Matches: @_agents.Sum(a => a.PatientMatchCount)</p>
+                <p>Total Extracted Data: @_agents.Sum(a => a.ExtractedDataCount)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col">
+        <div class="alert @(_isConnected ? "alert-success" : "alert-warning")">
+            @(_isConnected ? "Connected - Real-time updates enabled" : "Connecting...")
+        </div>
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Machine Name</th>
+            <th>Status</th>
+            <th>Last Sync</th>
+            <th>Patient Matches</th>
+            <th>Extracted Data</th>
+            <th>Last Update</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var agent in _agents)
+        {
+            <tr class="@(IsAgentActive(agent) ? "table-success" : "table-warning")" 
+                style="cursor: pointer" 
+                @onclick="() => NavigateToDetails(agent)">
+                <td>@agent.MachineName</td>
+                <td>@agent.Status</td>
+                <td>@agent.LastSyncTime.ToLocalTime()</td>
+                <td>@agent.PatientMatchCount</td>
+                <td>@agent.ExtractedDataCount</td>
+                <td>@(DateTime.UtcNow - agent.LastSyncTime).TotalMinutes.ToString("F1") minutes ago</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Agent> _agents = new();
+    private bool _isConnected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Firebase.OnAgentsChanged += HandleAgentsChanged;
+        Firebase.OnConnectionStateChanged += HandleConnectionStateChanged;
+        await Firebase.StartRealtimeUpdatesAsync();
+        _isConnected = true;
+    }
+
+    private void HandleAgentsChanged(List<Agent> agents)
+    {
+        _agents = agents;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleConnectionStateChanged(bool isConnected)
+    {
+        _isConnected = isConnected;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private bool IsAgentActive(Agent agent)
+    {
+        return (DateTime.UtcNow - agent.LastSyncTime).TotalMinutes < 5;
+    }
+
+    private void NavigateToDetails(Agent agent)
+    {
+        Navigation.NavigateTo($"/agent/{agent.AgentId}");
+    }
+
+    public void Dispose()
+    {
+        Firebase.OnAgentsChanged -= HandleAgentsChanged;
+        Firebase.OnConnectionStateChanged -= HandleConnectionStateChanged;
+        Firebase.StopRealtimeUpdates();
+    }
+} 

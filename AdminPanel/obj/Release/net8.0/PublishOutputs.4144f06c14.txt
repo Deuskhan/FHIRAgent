@@ -1,0 +1,3 @@
+C:\GitHub\FHIRagent\AdminPanel\bin\Release\net8.0\publish\appsettings.json
+C:\GitHub\FHIRagent\AdminPanel\bin\Release\net8.0\publish\emcc-props.json
+C:\GitHub\FHIRagent\AdminPanel\bin\Release\net8.0\publish\web.config

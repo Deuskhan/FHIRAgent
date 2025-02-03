@@ -1,0 +1,9 @@
+<Window x:Class="Agent.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="SMART on FHIR Agent" Height="450" Width="800">
+    <Grid>
+        <!-- Simple embedded browser control serving as a placeholder for the patient context overlay -->
+        <WebBrowser Name="PatientOverlayWebBrowser" />
+    </Grid>
+</Window> 

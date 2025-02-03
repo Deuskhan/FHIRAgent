@@ -1,0 +1,70 @@
+@page "/logs"
+@attribute [Authorize]
+@inject FirebaseService Firebase
+@implements IDisposable
+
+<h3>System Logs</h3>
+
+<div class="row mb-4">
+    <div class="col">
+        <div class="alert @(_isConnected ? "alert-success" : "alert-warning")">
+            @(_isConnected ? "Connected - Real-time updates enabled" : "Connecting...")
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Agent</th>
+                <th>Severity</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var log in _logs)
+            {
+                <tr class="@GetSeverityClass(log.Severity)">
+                    <td>@log.Timestamp.ToLocalTime()</td>
+                    <td>@log.AgentId</td>
+                    <td>@log.Severity</td>
+                    <td>@log.Message</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<LogEntry> _logs = new();
+    private bool _isConnected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Firebase.OnLogsChanged += HandleLogsChanged;
+        await Firebase.StartRealtimeUpdatesAsync();
+        _isConnected = true;
+    }
+
+    private void HandleLogsChanged(List<LogEntry> logs)
+    {
+        _logs = logs;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string GetSeverityClass(string severity) => severity.ToLower() switch
+    {
+        "error" => "table-danger",
+        "warning" => "table-warning",
+        "information" => "table-info",
+        _ => ""
+    };
+
+    public void Dispose()
+    {
+        Firebase.OnLogsChanged -= HandleLogsChanged;
+        Firebase.StopRealtimeUpdates();
+    }
+} 
